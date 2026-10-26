@@ -1,0 +1,14 @@
+{
+  "name": "rtt-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo de movilidad de código: cliente-servidor vs Remote Evaluation vs Code-on-Demand en el edge con Cloudflare Workers",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

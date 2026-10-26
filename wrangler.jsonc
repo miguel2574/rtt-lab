@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rtt-lab",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-01",
+
+  // URL de workers.dev + tu dominio propio
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "rtt.smartmichi.work", "custom_domain": true }
+  ],
+
+  // La página web (HTML, CSS y JS) que se sirve desde el edge
+  "assets": { "directory": "./public" },
+
+  // El "servidor central" (Durable Object)
+  "durable_objects": {
+    "bindings": [{ "name": "CENTRAL", "class_name": "ServidorCentral" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ServidorCentral"] }]
+}

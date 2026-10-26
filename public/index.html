@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RTT Lab</title>
+  <style>
+    :root {
+      --fondo: #f6f5f1; --tarjeta: #ffffff; --texto: #1d1d1b; --suave: #6b6a65;
+      --borde: #e2e0d8; --c1: #c2410c; --c2: #b45309; --c3: #15803d; --acento: #1d4ed8;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fondo: #151513; --tarjeta: #1f1f1c; --texto: #ecebe6; --suave: #9b9a94;
+        --borde: #34332e; --c1: #fb923c; --c2: #fbbf24; --c3: #4ade80; --acento: #60a5fa;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--fondo); color: var(--texto);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    main { max-width: 960px; margin: 0 auto; padding: 32px 16px 48px; }
+    h1 { font-size: 2rem; margin: 0 0 4px; letter-spacing: -0.02em; }
+    .subtitulo { color: var(--suave); margin: 0 0 24px; }
+    .info {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;
+      margin-bottom: 24px;
+    }
+    .dato {
+      background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 12px; padding: 14px 16px;
+    }
+    .dato .etiqueta { font-size: 0.8rem; color: var(--suave); text-transform: uppercase; letter-spacing: 0.04em; }
+    .dato .valor { font-size: 1.25rem; font-weight: 600; }
+    .controles {
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: end;
+      background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 12px; padding: 16px; margin-bottom: 24px;
+    }
+    label { display: flex; flex-direction: column; font-size: 0.85rem; color: var(--suave); gap: 4px; }
+    select, input {
+      font: inherit; color: var(--texto); background: var(--fondo); border: 1px solid var(--borde);
+      border-radius: 8px; padding: 6px 10px; min-width: 120px;
+    }
+    button {
+      font: inherit; font-weight: 600; cursor: pointer; border: none; border-radius: 8px;
+      padding: 9px 16px; background: var(--acento); color: #fff;
+    }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    .casos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .caso {
+      background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 12px; padding: 18px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .caso h2 { font-size: 1.05rem; margin: 0; }
+    .caso p { margin: 0; font-size: 0.9rem; color: var(--suave); }
+    .tiempo { font-size: 2.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .detalles { font-size: 0.85rem; color: var(--suave); min-height: 2.6em; }
+    .barra { height: 10px; background: var(--fondo); border-radius: 99px; overflow: hidden; }
+    .barra div { height: 100%; width: 0; border-radius: 99px; transition: width 0.4s; }
+    #caso1 .barra div { background: var(--c1); } #caso1 button { background: var(--c1); }
+    #caso2 .barra div { background: var(--c2); } #caso2 button { background: var(--c2); color: #1d1d1b; }
+    #caso3 .barra div { background: var(--c3); } #caso3 button { background: var(--c3); }
+    section.explicacion, section.resultados {
+      margin-top: 24px; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 12px; padding: 18px;
+    }
+    .formula { font-family: ui-monospace, Consolas, monospace; font-size: 1.05rem; padding: 8px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--borde); }
+    .tabla-scroll { overflow-x: auto; }
+    footer { margin-top: 32px; font-size: 0.85rem; color: var(--suave); }
+    a { color: var(--acento); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>RTT Lab</h1>
+  <p class="subtitulo">Movilidad de código frente a la latencia: la misma búsqueda hecha de tres formas distintas, medida en tiempo real desde tu navegador.</p>
+
+  <div class="info">
+    <div class="dato"><div class="etiqueta">Te responde el edge de</div><div class="valor" id="edge">…</div></div>
+    <div class="dato"><div class="etiqueta">Servidor central en</div><div class="valor" id="central">…</div></div>
+    <div class="dato"><div class="etiqueta">RTT edge ↔ central</div><div class="valor" id="rttCentral">…</div></div>
+  </div>
+
+  <div class="controles">
+    <label>Categoría
+      <select id="categoria">
+        <option>Periféricos</option><option>Componentes</option><option>Redes</option>
+        <option>Almacenamiento</option><option>Audio</option>
+      </select>
+    </label>
+    <label>Precio máximo (€)<input id="precioMax" type="number" value="50" min="1" max="300"></label>
+    <label>Valoración mínima<input id="valoracionMin" type="number" value="4.5" min="3.8" max="5" step="0.1"></label>
+    <button id="todos">Ejecutar los tres</button>
+  </div>
+
+  <div class="casos">
+    <div class="caso" id="caso1">
+      <h2>1 · Cliente-servidor</h2>
+      <p>El navegador pide la lista al servidor central y luego los detalles de cada producto barato, uno por uno.</p>
+      <div class="tiempo">— ms</div>
+      <div class="barra"><div></div></div>
+      <div class="detalles">Sin ejecutar</div>
+      <button>Ejecutar</button>
+    </div>
+    <div class="caso" id="caso2">
+      <h2>2 · Remote Evaluation</h2>
+      <p>El navegador envía el filtro al servidor central, que lo ejecuta junto a los datos y devuelve solo el resultado.</p>
+      <div class="tiempo">— ms</div>
+      <div class="barra"><div></div></div>
+      <div class="detalles">Sin ejecutar</div>
+      <button>Ejecutar</button>
+    </div>
+    <div class="caso" id="caso3">
+      <h2>3 · Code-on-Demand en el edge</h2>
+      <p>El filtro se ha distribuido a todos los centros de datos de Cloudflare y se ejecuta en el más cercano a ti.</p>
+      <div class="tiempo">— ms</div>
+      <div class="barra"><div></div></div>
+      <div class="detalles">Sin ejecutar</div>
+      <button>Ejecutar</button>
+    </div>
+  </div>
+
+  <section class="explicacion">
+    <strong>Por qué cambia tanto el tiempo</strong>
+    <div class="formula">Tiempo de respuesta ≈ nº de RTT × duración de cada RTT</div>
+    <p style="margin:0;color:var(--suave)">Remote Evaluation reduce el <em>número</em> de viajes por la red. El edge reduce la <em>duración</em> de cada viaje, porque el código se ejecuta cerca de ti.</p>
+  </section>
+
+  <section class="resultados">
+    <strong>Productos encontrados</strong> <span id="numResultados" style="color:var(--suave)"></span>
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>ID</th><th>Producto</th><th>Precio</th><th>Valoración</th></tr></thead>
+        <tbody id="tablaResultados"><tr><td colspan="4" style="color:var(--suave)">Ejecuta algún caso para ver los resultados.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Trabajo Teórico 5 · Sistemas Distribuidos · ESII Albacete (UCLM) ·
+    <a href="https://github.com/miguel2574/rtt-lab">Código en GitHub</a>
+  </footer>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
